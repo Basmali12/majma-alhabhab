@@ -1089,6 +1089,7 @@ label textarea {
   font-weight: 700;
 }
 .payment-btn {
+  border: 2px solid #dc2626;
   background: #ffeded;
   color: #c32436;
 }
