@@ -1,4 +1,5 @@
 'use client';
+import BrandImage from './brand-image';
 import { useState, useEffect, type ReactNode } from 'react';
 import {
   Users,
@@ -14,7 +15,7 @@ import {
   Moon,
   Sun,
   BellRing,
-  Building2,
+  Settings,
   Check,
   ReceiptText,
   ArrowDownLeft,
@@ -32,6 +33,8 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
+import { useAppPreferences, Welcome, SettingsPanel } from './preferences';
+import { whatsappText } from '@/lib/preferences';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   money,
@@ -131,6 +134,8 @@ function WhatsApp() {
   );
 }
 export default function Home() {
+  const prefs = useAppPreferences();
+  const [shareFallback, setShareFallback] = useState('');
   const [dark, setDark] = useState(true);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -338,11 +343,35 @@ export default function Home() {
       },
     });
   }
-  function share(t: Transaction) {
+  async function share(t: Transaction) {
     if (!customer) return;
-    const text = `مجمع الهبهاب\nالزبون: ${customer.name}\n${t.type === 'debt' ? 'دين' : 'تسديد'} • ${new Date(t.date).toLocaleDateString('ar-IQ')}\n${t.items.map((i) => `${i.name}: ${money(i.price)} د.ع`).join('\n')}\nالمبلغ: ${money(t.amount)} د.ع\nالدين المتبقي: ${money(debt)} د.ع`;
+    setShareFallback('');
+    const text = whatsappText(prefs.name, prefs.intro, customer.name, t, debt);
+    if (prefs.logoFile && navigator.canShare?.({ files: [prefs.logoFile] })) {
+      try {
+        await navigator.share({
+          files: [prefs.logoFile],
+          title: prefs.name,
+          text,
+        });
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return;
+        setShareFallback(
+          'https://wa.me/' +
+            phoneNumber(customer.phone) +
+            '?text=' +
+            encodeURIComponent(text),
+        );
+        notify('تعذّرت مشاركة الصورة. يمكنك مشاركة الرسالة النصية.');
+        return;
+      }
+    }
     window.open(
-      `https://wa.me/${phoneNumber(customer.phone)}?text=${encodeURIComponent(text)}`,
+      'https://wa.me/' +
+        phoneNumber(customer.phone) +
+        '?text=' +
+        encodeURIComponent(text),
       '_blank',
       'noopener,noreferrer',
     );
@@ -453,15 +482,29 @@ export default function Home() {
       ))}
     </div>
   );
+  if (!prefs.unlocked)
+    return (
+      <Welcome
+        name={prefs.name}
+        logo={prefs.logo}
+        pinHash={prefs.pinHash}
+        onEnter={(hash) => {
+          prefs.setPinHash(hash);
+          prefs.setUnlocked(true);
+        }}
+      />
+    );
   return (
     <div className="app">
       <header className="header">
         <div className="brand">
-          <span className="brand-icon">
-            <Building2 size={27} />
-          </span>
+          <BrandImage
+            className="brand-photo"
+            src={prefs.logo}
+            alt={prefs.name}
+          />
           <div>
-            <h1>مجمع الهبهاب</h1>
+            <h1>{prefs.name}</h1>
             <p>للـمـواد الإنـشـائـيـة</p>
           </div>
         </div>
@@ -476,6 +519,16 @@ export default function Home() {
         </button>
       </header>
       <main>
+        {shareFallback && (
+          <a
+            className="soft save"
+            href={shareFallback}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            مشاركة رسالة واتساب النصية
+          </a>
+        )}
         {notice && (
           <div className="validation-message" role="alert">
             <span>{notice}</span>
@@ -976,7 +1029,7 @@ export default function Home() {
                               <IconButton
                                 label="مشاركة عبر واتساب"
                                 kind="whatsapp"
-                                onClick={() => share(t)}
+                                onClick={() => void share(t)}
                               >
                                 <WhatsApp />
                               </IconButton>
@@ -1076,6 +1129,9 @@ export default function Home() {
               )
             )}
           </TabsContent>
+          <TabsContent value="settings">
+            <SettingsPanel prefs={prefs} />
+          </TabsContent>
           <TabsList className="bottom-tabs">
             <TabsTrigger value="customers">
               <Users />
@@ -1097,6 +1153,10 @@ export default function Home() {
                   <b className="late-count">{overdueCustomers.length}</b>
                 )}
               </span>
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings />
+              <span>الإعدادات</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>

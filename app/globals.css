@@ -1401,3 +1401,245 @@ label textarea {
   color: #ffb6c1;
   border-color: #74404c;
 }
+/* Welcome and application settings */
+.brand-photo {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #cda340;
+  flex-shrink: 0;
+}
+.brand h1 {
+  overflow-wrap: anywhere;
+  max-width: 520px;
+}
+.welcome {
+  padding: 28px 18px;
+  max-width: 780px;
+  margin: auto;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+.welcome-card {
+  width: 100%;
+  max-width: 570px;
+  background: #182333;
+  border: 1px solid #344156;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 22px 80px #0004;
+  color: #edf2fa;
+}
+.welcome-photo {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+}
+.welcome-photo > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.welcome-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #111c2ff2, transparent 95%);
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 25px;
+}
+.welcome-overlay > span {
+  color: #ffd978;
+  font-size: 14px;
+}
+.welcome-overlay h1 {
+  font-size: 31px;
+  font-weight: 800;
+}
+.welcome-overlay p {
+  color: #cfdae9;
+  font-size: 14px;
+}
+.welcome-content {
+  padding: 25px 28px 27px;
+}
+.welcome-lock {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  background: #d7a94220;
+  color: #edc35e;
+  border: 1px solid #d7a94255;
+  border-radius: 13px;
+  margin-bottom: 12px;
+}
+.welcome-content > p {
+  color: #aab8cd;
+  font-size: 14px;
+  margin: 5px 0 18px;
+}
+.welcome form,
+.settings-card form {
+  display: grid;
+  gap: 15px;
+}
+.welcome input {
+  background: #101c2b;
+  color: white;
+  border-color: #41516a;
+  letter-spacing: 4px;
+}
+.welcome .primary {
+  background: #d3a438;
+  color: #171e2a;
+}
+.welcome .install-app {
+  margin-top: 14px;
+}
+.welcome-content .session-note {
+  font-size: 12px;
+  line-height: 1.8;
+  margin-bottom: 0;
+}
+.install-help,
+.settings-hint {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #718198;
+  margin: 12px 0;
+}
+.dark .install-help,
+.dark .settings-hint {
+  color: #acbbd0;
+}
+.settings-card {
+  background: #fff;
+  border: 1px solid #dfe7f2;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.settings-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+.dark .settings-card {
+  background: #1a2535;
+  border-color: #34435b;
+}
+.logo-preview {
+  height: 180px;
+  background: #101723;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.logo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.settings-card input[type='file'] {
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 9px;
+}
+.message-preview {
+  border: 1px dashed #8ab299;
+  border-radius: 12px;
+  padding: 15px;
+  background: #eff8f2;
+}
+.message-preview p {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  margin: 7px 0;
+}
+.message-preview small {
+  font-size: 12px;
+  color: #6d8073;
+}
+.dark .message-preview {
+  background: #152e25;
+  border-color: #39684f;
+}
+.dark .message-preview small {
+  color: #9cbdab;
+}
+.settings-result {
+  display: block;
+  font-size: 14px;
+  color: #37774e;
+  padding: 8px 0;
+}
+.dark .settings-result {
+  color: #a9dabc;
+}
+.bottom-tabs {
+  width: 560px !important;
+}
+.bottom-tabs [data-slot='tabs-trigger'] {
+  min-width: 0 !important;
+  flex-basis: 0 !important;
+  padding: 5px 2px !important;
+}
+.bottom-tabs [data-slot='tabs-trigger'] svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+.bottom-tabs [data-slot='tabs-trigger'] span {
+  font-size: 12px;
+}
+.settings-card .soft {
+  margin-top: 10px;
+}
+@media (max-width: 600px) {
+  .brand-photo {
+    width: 46px;
+    height: 46px;
+  }
+  .brand h1 {
+    font-size: 21px;
+    max-width: 200px;
+  }
+  .brand {
+    gap: 9px;
+  }
+  .welcome {
+    padding: 16px 12px;
+  }
+  .welcome-photo {
+    height: 210px;
+  }
+  .welcome-content {
+    padding: 21px;
+  }
+  .welcome-overlay h1 {
+    font-size: 29px;
+  }
+  .settings-card {
+    padding: 17px;
+  }
+  .bottom-tabs {
+    gap: 1px !important;
+    padding: 6px 4px !important;
+  }
+  .bottom-tabs [data-slot='tabs-trigger'] {
+    gap: 3px !important;
+  }
+  .bottom-tabs [data-slot='tabs-trigger'] span {
+    font-size: 11px;
+  }
+  .late-count {
+    min-width: 14px;
+    height: 14px;
+    font-size: 10px;
+    margin-right: 0;
+  }
+}
