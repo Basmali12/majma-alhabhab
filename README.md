@@ -4,13 +4,21 @@
 البيانات مؤقتة داخل ذاكرة الصفحة فقط وتُمسح عند إعادة التحميل؛ هذه النسخة للمعاينة وليست لحفظ السجلات الفعلية.
 
 ## التشغيل
-- `npm ci`
-- `npm run dev` للمعاينة المحلية الحالية.
-- `npm run build:pages` لبناء نسخة GitHub Pages.
-- `npm run preview:pages` لفحص نسخة Pages محليًا.
-- `npm test` لاختبارات الحسابات.
+- 
+pm ci`
+- 
+pm run dev` للمعاينة المحلية الحالية.
+- 
+pm run build:pages` لبناء نسخة GitHub Pages.
+- 
+pm run preview:pages` لفحص نسخة Pages محليًا.
+- 
+pm test` لاختبارات الحسابات.
 
-GitHub Actions ينشر فرع main تلقائيًا. مفتاح VITE_SENTRY_DSN يُقرأ من إعدادات البيئة المحلية أو GitHub Actions Secrets. لا تُرفع ملفات البيئة.
+الرابط العام: https://basmali12.github.io/majma-alhabhab/
 
-الفحص المحدد لكود التطبيق: `npx oxlint app lib/ledger.ts vite.pages.config.ts`.
+النشر الحالي من فرع gh-pages، ويحتوي الملفات الناتجة عن npm run build:pages. حساب GitHub منع تشغيل Actions بسبب قيد فوترة؛ لذلك نُشرت النسخة المبنية محليًا مباشرة. سير عمل Actions محفوظ للتشغيل اليدوي بعد معالجة القيد. مفتاح VITE_SENTRY_DSN يُقرأ من إعدادات البيئة المحلية أو GitHub Actions Secrets. لا تُرفع ملفات البيئة.
+
+الفحص المحدد لكود التطبيق: 
+px oxlint app lib/ledger.ts vite.pages.config.ts`.
 الفحص الشامل يتضمن 19 ملاحظة سابقة داخل مكونات القالب الجاهزة.
