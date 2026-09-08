@@ -1062,3 +1062,341 @@ label textarea {
 .category-card .actions {
   flex-shrink: 0;
 }
+/* Account colors and theme controls */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 9px 13px;
+  border-radius: 11px;
+  color: #3467ae;
+  background: #e8effb;
+  font-size: 14px;
+  font-weight: 700;
+}
+.debt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 17px;
+  border-radius: 11px;
+  background: #151515;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.payment-btn {
+  background: #ffeded;
+  color: #c32436;
+}
+.payment-btn:hover {
+  background: #ffdae0;
+}
+.payment-amount {
+  color: #c32436 !important;
+}
+.debt-amount {
+  color: #111 !important;
+}
+.paid {
+  background: #fff0f2;
+  color: #c32436;
+}
+.debt-icon {
+  background: #f0f0f0;
+  color: #111;
+}
+.payment-badge {
+  background: #ffedf0;
+  color: #bf2237;
+}
+.debt-badge {
+  background: #eee;
+  color: #111;
+}
+.customer-amount b {
+  color: #111;
+}
+.balance strong {
+  color: #111;
+  background: #fff;
+  width: fit-content;
+  border-radius: 10px;
+  padding: 3px 12px;
+}
+.balance strong small {
+  color: #555;
+}
+.customer-notes {
+  background: #fff;
+  border: 1px solid #dfe6f1;
+  border-radius: 13px;
+  padding: 14px 17px;
+  margin-bottom: 17px;
+  font-size: 14px;
+}
+.customer-notes p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #64748b;
+}
+.due-field {
+  margin-bottom: 21px;
+}
+.due-field small {
+  font-weight: 400;
+  color: #64748b;
+}
+.due-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 18px 12px;
+  font-size: 13px;
+  color: #718096;
+}
+.due-caption .badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.overdue-total {
+  padding: 20px;
+  background: #ffedf0;
+  color: #a81e32;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+.overdue-total strong {
+  display: block;
+  font-size: 30px;
+}
+.overdue-card {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #edcfd5;
+  border-radius: 17px;
+}
+.overdue-card .section-heading {
+  margin: 0 0 12px;
+}
+.overdue-detail {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.overdue-detail b {
+  color: #c32436;
+}
+.overdue-card .save {
+  margin-top: 16px;
+}
+.late-count {
+  display: inline-grid;
+  place-items: center;
+  background: #c32436;
+  color: white;
+  border-radius: 10px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 11px;
+  margin-right: 2px;
+}
+.dark {
+  color-scheme: dark;
+  --background: #101723;
+  --foreground: #e8edf6;
+  --popover: #1a2535;
+  --primary: #568cff;
+  --color-muted: #28354a;
+  --color-muted-foreground: #b0bdd1;
+  --color-border: #34435b;
+}
+.dark body {
+  background: #101723;
+  color: #e8edf6;
+}
+.dark .header {
+  border-color: #2b384c;
+}
+.dark .brand p,
+.dark .preview-note,
+.dark .section-heading p,
+.dark .muted,
+.dark .back,
+.dark .account-heading p {
+  color: #a4b2c7;
+}
+.dark .theme-toggle,
+.dark .soft {
+  background: #273853;
+  color: #c2d9ff;
+}
+.dark .search,
+.dark .customer-card,
+.dark .customer-main,
+.dark .product-card,
+.dark .transaction-card,
+.dark .transaction-form,
+.dark .empty,
+.dark .customer-notes,
+.dark .overdue-card {
+  background: #1a2535;
+  color: #e8edf6;
+  border-color: #34435b;
+}
+.dark .customer-main:hover {
+  background: #233148;
+}
+.dark input,
+.dark textarea,
+.dark select {
+  background: #131e2e;
+  color: #eef3fb;
+  border-color: #3a4c67;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #8d9db5;
+}
+.dark .search input {
+  background: transparent !important;
+}
+.dark .empty p,
+.dark .customer-notes p,
+.dark .customer-info > span,
+.dark .customer-info small,
+.dark .customer-amount small,
+.dark .transaction-head small,
+.dark .prices span,
+.dark .product-title small,
+.dark .due-caption,
+.dark .due-field small {
+  color: #aebbd0;
+}
+.dark .card-bottom,
+.dark .overdue-detail {
+  border-color: #34435b;
+}
+.dark .prices,
+.dark .transaction-items,
+.dark .total-row {
+  background: #121d2d;
+  color: #e5ebf6;
+}
+.dark .transaction-items > div {
+  color: #c1cce0;
+}
+.dark .avatar,
+.dark .empty-icon,
+.dark .count {
+  background: #293b58;
+  color: #c0d6f8;
+}
+.dark .blue {
+  color: #8ab4ff !important;
+}
+.dark .bottom-tabs {
+  background: #1a2535 !important;
+  border-color: #34435b;
+}
+.dark .bottom-tabs [data-slot='tabs-trigger'] {
+  color: #aabbcf !important;
+}
+.dark .bottom-tabs [data-slot='tabs-trigger'][data-active] {
+  background: #293d5e !important;
+  color: #a9caff !important;
+}
+.dark .add-line {
+  background: #182940;
+  color: #aacbff;
+  border-color: #4d6d9d;
+}
+.dark .icon-btn {
+  color: #b4c3db;
+}
+.dark .icon-btn.danger {
+  color: #f19ca6;
+}
+.dark .icon-btn:hover {
+  background: #2a3c56;
+}
+.dark .icon-btn.whatsapp {
+  color: #6fd9a7;
+}
+.dark .payment-btn,
+.dark .payment-badge,
+.dark .paid,
+.dark .overdue-total {
+  background: #45232d;
+  color: #ff9fad;
+}
+.dark .payment-amount,
+.dark .overdue-detail b {
+  color: #ff9fad !important;
+}
+.dark .debt-amount,
+.dark .customer-amount b {
+  background: #f0f2f6;
+  color: #111 !important;
+  padding: 1px 7px;
+  border-radius: 6px;
+}
+.dark .debt-icon,
+.dark .debt-badge {
+  background: #e2e7ed;
+  color: #111;
+}
+.dark .error {
+  background: #45232d;
+  color: #ffb6c1;
+}
+.dark .green {
+  background: #173d30;
+  color: #a0e0bd;
+}
+.dark .amber {
+  background: #473822;
+  color: #efd099;
+}
+.dark [data-slot='dialog-content'],
+.dark [data-slot='alert-dialog-content'] {
+  background: #1a2535;
+  color: #e8edf6;
+}
+.dark [data-slot='dialog-description'],
+.dark [data-slot='alert-dialog-description'] {
+  color: #afbdd1;
+}
+.dark .debt-btn {
+  background: #050505;
+  border: 1px solid #536078;
+}
+.dark .prices > div + div {
+  border-color: #34435b;
+}
+.validation-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #fff0f1;
+  color: #a82637;
+  border: 1px solid #f2cdd4;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-top: 14px;
+}
+.dark .validation-message {
+  background: #45232d;
+  color: #ffb6c1;
+  border-color: #74404c;
+}

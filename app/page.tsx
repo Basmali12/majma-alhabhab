@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   Users,
   Package,
@@ -11,9 +11,11 @@ import {
   ArrowRight,
   ChevronLeft,
   Phone,
-  Layers,
-  Check,
+  Moon,
+  Sun,
+  BellRing,
   Building2,
+  Check,
   ReceiptText,
   ArrowDownLeft,
   X,
@@ -32,14 +34,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
-import {
   money,
+  overdueDebts,
+  dueAfter,
   total,
   balance,
   validLedger,
@@ -48,7 +45,6 @@ import {
   type Transaction,
 } from '@/lib/ledger';
 type Customer = { id: string; name: string; phone: string; notes: string };
-type Category = { id: string; name: string };
 type Product = {
   id: string;
   name: string;
@@ -56,10 +52,9 @@ type Product = {
   sell: number;
   quantity: number;
   alert: number;
-  category: string;
 };
 type FormState = {
-  kind: 'customer' | 'category' | 'product';
+  kind: 'customer' | 'product';
   id?: string;
   name: string;
   phone?: string;
@@ -68,7 +63,6 @@ type FormState = {
   sell?: string;
   quantity?: string;
   alert?: string;
-  category?: string;
 };
 const uid = () => crypto.randomUUID();
 function Num({
@@ -136,15 +130,27 @@ function WhatsApp() {
   );
 }
 export default function Home() {
+  const [dark, setDark] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    const refresh = () => setNow(Date.now());
+    window.addEventListener('focus', refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark);
+    return () => document.documentElement.classList.remove('dark');
+  }, [dark]);
   const [tab, setTab] = useState('customers'),
     [customers, setCustomers] = useState<Customer[]>([]),
-    [categories, setCategories] = useState<Category[]>([]),
     [products, setProducts] = useState<Product[]>([]),
     [transactions, setTransactions] = useState<Transaction[]>([]);
   const [search, setSearch] = useState(''),
     [selected, setSelected] = useState<string | null>(null),
-    [category, setCategory] = useState('all'),
-    [manage, setManage] = useState(false),
     [form, setForm] = useState<FormState | null>(null),
     [notice, setNotice] = useState(''),
     [error, setError] = useState('');
@@ -157,6 +163,7 @@ export default function Home() {
       id?: string;
       items: { name: string; price: string }[];
       amount: string;
+      dueDate: string;
     } | null>(null);
   const customer = customers.find((c) => c.id === selected),
     ledger = transactions.filter((t) => t.customer === selected),
@@ -164,6 +171,16 @@ export default function Home() {
     filtered = customers.filter((c) =>
       normalize(c.name).startsWith(normalize(search.trim())),
     );
+  const overdueCustomers = customers
+    .map((c) => ({
+      customer: c,
+      debts: overdueDebts(
+        transactions.filter((t) => t.customer === c.id),
+        now,
+      ),
+    }))
+    .filter((c) => c.debts.length > 0);
+  const accountOverdue = overdueDebts(ledger, now);
   const notify = (s: string) => {
       setNotice(s);
       setError('');
@@ -177,7 +194,6 @@ export default function Home() {
     setSearch('');
     setSelected(null);
     setEditor(null);
-    setManage(false);
     setError('');
   }
   function saveForm(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -204,25 +220,7 @@ export default function Home() {
         form.id ? old.map((x) => (x.id === id ? c : x)) : [...old, c],
       );
     }
-    if (form.kind === 'category') {
-      if (
-        categories.some(
-          (c) => c.id !== id && normalize(c.name) === normalize(name),
-        )
-      ) {
-        setError('هذا التصنيف موجود بالفعل');
-        return;
-      }
-      const c = { id, name };
-      setCategories((old) =>
-        form.id ? old.map((x) => (x.id === id ? c : x)) : [...old, c],
-      );
-    }
     if (form.kind === 'product') {
-      if (!form.category) {
-        setError('اختر التصنيف أولًا');
-        return;
-      }
       const p = {
         id,
         name,
@@ -230,7 +228,6 @@ export default function Home() {
         sell: Number(form.sell),
         quantity: Number(form.quantity),
         alert: Number(form.alert),
-        category: form.category,
       };
       if (
         [p.buy, p.sell, p.quantity, p.alert].some(
@@ -245,7 +242,7 @@ export default function Home() {
       );
     }
     setForm(null);
-    notify('تم الحفظ بنجاح');
+    setNotice('');
   }
   function deleteCustomer(c: Customer) {
     if (transactions.some((t) => t.customer === c.id)) {
@@ -258,7 +255,7 @@ export default function Home() {
       text: `حذف الزبون «${c.name}»؟`,
       action: () => {
         setCustomers((old) => old.filter((x) => x.id !== c.id));
-        notify('تم حذف الزبون');
+        setNotice('');
       },
     });
   }
@@ -272,6 +269,7 @@ export default function Home() {
         price: String(i.price),
       })) || [{ name: '', price: '' }],
       amount: t ? String(t.amount) : '',
+      dueDate: t?.dueDate || dueAfter(t?.date || new Date().toISOString()),
     });
   }
   function saveTransaction(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -293,6 +291,10 @@ export default function Home() {
       setError('اكتب وصفًا وسعرًا أكبر من صفر لكل بند');
       return;
     }
+    if (editor.type === 'debt' && !/^\d{4}-\d{2}-\d{2}$/.test(editor.dueDate)) {
+      setError('اختر تاريخ استحقاق الدين');
+      return;
+    }
     const original = transactions.find((t) => t.id === editor.id),
       t: Transaction = {
         id: editor.id || uid(),
@@ -301,6 +303,7 @@ export default function Home() {
         items,
         amount,
         date: original?.date || new Date().toISOString(),
+        ...(editor.type === 'debt' ? { dueDate: editor.dueDate } : {}),
       },
       next = editor.id
         ? transactions.map((x) => (x.id === t.id ? t : x))
@@ -313,7 +316,7 @@ export default function Home() {
     }
     setTransactions(next);
     setEditor(null);
-    notify('تم حفظ المعاملة وتحديث الرصيد');
+    setNotice('');
   }
   function deleteTransaction(t: Transaction) {
     const next = transactions.filter((x) => x.id !== t.id);
@@ -327,7 +330,7 @@ export default function Home() {
       text: 'حذف المعاملة وإعادة حساب رصيد الزبون؟',
       action: () => {
         setTransactions(next);
-        notify('تم حذف المعاملة وتحديث الرصيد');
+        setNotice('');
       },
     });
   }
@@ -458,11 +461,25 @@ export default function Home() {
             <p>للـمـواد الإنـشـائـيـة</p>
           </div>
         </div>
-        <span className="header-label">
-          <span /> دفتر الديون
-        </span>
+        <button
+          className="theme-toggle"
+          onClick={() => setDark((v) => !v)}
+          aria-pressed={dark}
+          aria-label={dark ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
+        >
+          {dark ? <Sun size={20} /> : <Moon size={20} />}
+          <span>{dark ? 'نهاري' : 'ليلي'}</span>
+        </button>
       </header>
       <main>
+        {notice && (
+          <div className="validation-message" role="alert">
+            <span>{notice}</span>
+            <IconButton label="إغلاق التنبيه" onClick={() => setNotice('')}>
+              <X size={17} />
+            </IconButton>
+          </div>
+        )}
         <div className="preview-note">
           <span /> معاينة مؤقتة · تُمسح البيانات عند تحديث الصفحة
         </div>
@@ -515,229 +532,107 @@ export default function Home() {
             <div className="section-heading">
               <div>
                 <span className="eyebrow blue">كل شيء في مكانه</span>
-                <h2>{manage ? 'تصنيفات المخزون' : 'المخزون'}</h2>
-                <p>
-                  {manage
-                    ? 'نظّم المواد في تصنيفات واضحة'
-                    : 'المواد والأسعار والكميات المتوفرة'}
-                </p>
+                <h2>المخزون</h2>
+                <p>المواد والأسعار والكميات المتوفرة</p>
               </div>
-              <button className="soft" onClick={() => setManage(!manage)}>
-                {manage ? <ArrowRight size={18} /> : <Layers size={18} />}{' '}
-                {manage ? 'المخزون' : 'التصنيفات'}
+              <button
+                className="primary"
+                onClick={() =>
+                  openForm({
+                    kind: 'product',
+                    name: '',
+                    buy: '',
+                    sell: '',
+                    quantity: '',
+                    alert: '',
+                  })
+                }
+              >
+                <Plus size={18} /> إضافة مادة
               </button>
             </div>
-            {manage ? (
-              <>
-                <button
-                  className="primary"
-                  onClick={() => openForm({ kind: 'category', name: '' })}
-                >
-                  <Plus size={18} /> إضافة تصنيف جديد
-                </button>
-                <div className="cards spaced">
-                  {categories.map((c) => (
-                    <article className="category-card" key={c.id}>
-                      <span className="avatar">
-                        <Layers />
-                      </span>
-                      <div>
-                        <strong>{c.name}</strong>
-                        <p>
-                          {products.filter((p) => p.category === c.id).length}{' '}
-                          مادة
-                        </p>
-                      </div>
-                      <div className="actions">
-                        <IconButton
-                          label={`تعديل ${c.name}`}
-                          onClick={() => openForm({ kind: 'category', ...c })}
-                        >
-                          <Pencil size={17} />
-                        </IconButton>
-                        <IconButton
-                          label={`حذف ${c.name}`}
-                          kind="danger"
-                          onClick={() => {
-                            if (products.some((p) => p.category === c.id)) {
-                              notify(
-                                'انقل مواد التصنيف أو احذفها قبل حذف التصنيف',
-                              );
-                              return;
-                            }
-                            setConfirm({
-                              text: `حذف تصنيف «${c.name}»؟`,
-                              action: () => {
-                                setCategories((old) =>
-                                  old.filter((x) => x.id !== c.id),
-                                );
-                                setCategory('all');
-                              },
-                            });
-                          }}
-                        >
-                          <Trash2 size={17} />
-                        </IconButton>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                {!categories.length &&
-                  empty(
-                    <Layers size={32} />,
-                    'أنشئ تصنيفك الأول',
-                    'مثل السباكة، الكهرباء أو مواد البناء.',
-                  )}
-              </>
-            ) : (
-              <>
-                <div className="inventory-toolbar">
-                  <div className="chips">
-                    <button
-                      className={category === 'all' ? 'active' : ''}
-                      onClick={() => setCategory('all')}
-                    >
-                      كل المواد <span>{products.length}</span>
-                    </button>
-                    {categories.map((c) => (
-                      <button
-                        className={category === c.id ? 'active' : ''}
-                        key={c.id}
-                        onClick={() => setCategory(c.id)}
+            <div className="cards spaced">
+              {products.map((p) => (
+                <article key={p.id} className="product-card">
+                  <div className="product-title">
+                    <span className="avatar">
+                      <Package size={23} />
+                    </span>
+                    <div>
+                      <h3>{p.name}</h3>
+                    </div>
+                    <div className="actions">
+                      <IconButton
+                        label={`تعديل ${p.name}`}
+                        onClick={() =>
+                          openForm({
+                            kind: 'product',
+                            ...p,
+                            buy: String(p.buy),
+                            sell: String(p.sell),
+                            quantity: String(p.quantity),
+                            alert: String(p.alert),
+                          })
+                        }
                       >
-                        {c.name}
-                      </button>
-                    ))}
+                        <Pencil size={17} />
+                      </IconButton>
+                      <IconButton
+                        label={`حذف ${p.name}`}
+                        kind="danger"
+                        onClick={() =>
+                          setConfirm({
+                            text: `حذف مادة «${p.name}»؟`,
+                            action: () =>
+                              setProducts((old) =>
+                                old.filter((x) => x.id !== p.id),
+                              ),
+                          })
+                        }
+                      >
+                        <Trash2 size={17} />
+                      </IconButton>
+                    </div>
                   </div>
-                  <button
-                    className="primary"
-                    onClick={() => {
-                      if (!categories.length) {
-                        setManage(true);
-                        openForm({ kind: 'category', name: '' });
-                        return;
+                  <div className="prices">
+                    <div>
+                      <span>سعر الشراء</span>
+                      <b>
+                        {money(p.buy)} <small>د.ع</small>
+                      </b>
+                    </div>
+                    <div>
+                      <span>سعر البيع</span>
+                      <b className="blue">
+                        {money(p.sell)} <small>د.ع</small>
+                      </b>
+                    </div>
+                  </div>
+                  <div className="card-bottom">
+                    <span>
+                      الكمية: <b>{money(p.quantity)}</b>
+                    </span>
+                    <span
+                      className={
+                        'badge ' + (p.quantity <= p.alert ? 'amber' : 'green')
                       }
-                      openForm({
-                        kind: 'product',
-                        name: '',
-                        buy: '',
-                        sell: '',
-                        quantity: '',
-                        alert: '',
-                        category:
-                          category === 'all' ? categories[0].id : category,
-                      });
-                    }}
-                  >
-                    <Plus size={18} /> إضافة مادة
-                  </button>
-                </div>
-                <div className="cards spaced">
-                  {products
-                    .filter(
-                      (p) => category === 'all' || p.category === category,
-                    )
-                    .map((p) => (
-                      <article key={p.id} className="product-card">
-                        <div className="product-title">
-                          <span className="avatar">
-                            <Package size={23} />
-                          </span>
-                          <div>
-                            <h3>{p.name}</h3>
-                            <small>
-                              {
-                                categories.find((c) => c.id === p.category)
-                                  ?.name
-                              }
-                            </small>
-                          </div>
-                          <div className="actions">
-                            <IconButton
-                              label={`تعديل ${p.name}`}
-                              onClick={() =>
-                                openForm({
-                                  kind: 'product',
-                                  ...p,
-                                  buy: String(p.buy),
-                                  sell: String(p.sell),
-                                  quantity: String(p.quantity),
-                                  alert: String(p.alert),
-                                })
-                              }
-                            >
-                              <Pencil size={17} />
-                            </IconButton>
-                            <IconButton
-                              label={`حذف ${p.name}`}
-                              kind="danger"
-                              onClick={() =>
-                                setConfirm({
-                                  text: `حذف مادة «${p.name}»؟`,
-                                  action: () =>
-                                    setProducts((old) =>
-                                      old.filter((x) => x.id !== p.id),
-                                    ),
-                                })
-                              }
-                            >
-                              <Trash2 size={17} />
-                            </IconButton>
-                          </div>
-                        </div>
-                        <div className="prices">
-                          <div>
-                            <span>سعر الشراء</span>
-                            <b>
-                              {money(p.buy)} <small>د.ع</small>
-                            </b>
-                          </div>
-                          <div>
-                            <span>سعر البيع</span>
-                            <b className="blue">
-                              {money(p.sell)} <small>د.ع</small>
-                            </b>
-                          </div>
-                        </div>
-                        <div className="card-bottom">
-                          <span>
-                            الكمية: <b>{money(p.quantity)}</b>
-                          </span>
-                          <span
-                            className={
-                              'badge ' +
-                              (p.quantity <= p.alert ? 'amber' : 'green')
-                            }
-                          >
-                            {p.quantity === 0
-                              ? 'نفدت الكمية'
-                              : p.quantity <= p.alert
-                                ? 'الكمية منخفضة'
-                                : 'متوفر'}
-                          </span>
-                        </div>
-                      </article>
-                    ))}
-                </div>
-                {!products.filter(
-                  (p) => category === 'all' || p.category === category,
-                ).length &&
-                  empty(
-                    <Package size={32} />,
-                    'مخزونك يبدأ من هنا',
-                    'أنشئ تصنيفًا، ثم أضف المواد وأسعارها وكمياتها.',
-                    <button
-                      className="soft"
-                      onClick={() => {
-                        setManage(true);
-                        openForm({ kind: 'category', name: '' });
-                      }}
                     >
-                      <Plus size={18} /> إنشاء تصنيف جديد
-                    </button>,
-                  )}
-              </>
-            )}
+                      {p.quantity === 0
+                        ? 'نفدت الكمية'
+                        : p.quantity <= p.alert
+                          ? 'الكمية منخفضة'
+                          : 'متوفر'}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+            {!products.length &&
+              empty(
+                <Package size={32} />,
+                'مخزونك يبدأ من هنا',
+                'أضف المواد مباشرة مع أسعارها وكمياتها.',
+              )}
           </TabsContent>
           <TabsContent value="sales">
             {!customer ? (
@@ -785,6 +680,12 @@ export default function Home() {
                   </div>
                   <span className="badge">حساب الزبون</span>
                 </div>
+                {customer.notes && (
+                  <aside className="customer-notes">
+                    <strong>ملاحظات الزبون</strong>
+                    <p>{customer.notes}</p>
+                  </aside>
+                )}
                 <section className="balance">
                   <span>الدين الكلي</span>
                   <strong>
@@ -814,6 +715,23 @@ export default function Home() {
                         </p>
                       </div>
                     </div>
+                    {editor.type === 'debt' && (
+                      <label className="due-field">
+                        موعد استحقاق الدين
+                        <input
+                          type="date"
+                          required
+                          value={editor.dueDate}
+                          onChange={(e) =>
+                            setEditor({ ...editor, dueDate: e.target.value })
+                          }
+                        />
+                        <small>
+                          يظهر تنبيه داخل التطبيق بعد هذا التاريخ إذا لم يُسدّد
+                          الدين.
+                        </small>
+                      </label>
+                    )}
                     {editor.type === 'debt' ? (
                       <>
                         <div className="line-items">
@@ -923,7 +841,14 @@ export default function Home() {
                         {error}
                       </p>
                     )}
-                    <button className="primary save" type="submit">
+                    <button
+                      className={
+                        (editor.type === 'payment'
+                          ? 'payment-btn'
+                          : 'debt-btn') + ' save'
+                      }
+                      type="submit"
+                    >
                       <Check size={19} /> حفظ المعاملة
                     </button>
                   </form>
@@ -931,7 +856,7 @@ export default function Home() {
                   <>
                     <div className="account-actions">
                       <button
-                        className="primary"
+                        className="debt-btn"
                         onClick={() => startTransaction('debt')}
                       >
                         <Plus size={20} /> إضافة دين
@@ -956,7 +881,8 @@ export default function Home() {
                           <div className="transaction-head">
                             <span
                               className={
-                                'avatar ' + (t.type === 'payment' ? 'paid' : '')
+                                'avatar ' +
+                                (t.type === 'payment' ? 'paid' : 'debt-icon')
                               }
                             >
                               {t.type === 'debt' ? (
@@ -979,13 +905,27 @@ export default function Home() {
                             </div>
                             <b
                               className={
-                                t.type === 'payment' ? 'green-text' : ''
+                                t.type === 'payment'
+                                  ? 'payment-amount'
+                                  : 'debt-amount'
                               }
                             >
                               {t.type === 'payment' ? '−' : '+'}
                               {money(t.amount)} <small>د.ع</small>
                             </b>
                           </div>
+                          {t.type === 'debt' && (
+                            <div className="due-caption">
+                              <span>
+                                الاستحقاق: {t.dueDate || dueAfter(t.date)}
+                              </span>
+                              {accountOverdue.some((d) => d.id === t.id) && (
+                                <span className="badge payment-badge">
+                                  <BellRing size={13} /> متأخر
+                                </span>
+                              )}
+                            </div>
+                          )}
                           {t.items.length > 0 && (
                             <div className="transaction-items">
                               {t.items.map((item, i) => (
@@ -1000,7 +940,9 @@ export default function Home() {
                             <span
                               className={
                                 'badge ' +
-                                (t.type === 'debt' ? 'amber' : 'green')
+                                (t.type === 'debt'
+                                  ? 'debt-badge'
+                                  : 'payment-badge')
                               }
                             >
                               {t.type === 'debt'
@@ -1044,6 +986,73 @@ export default function Home() {
               </>
             )}
           </TabsContent>
+          <TabsContent value="overdue">
+            <div className="section-heading">
+              <div>
+                <h2>
+                  تأخير الديون{' '}
+                  <span className="count">{overdueCustomers.length}</span>
+                </h2>
+                <p>المبالغ غير المسدّدة بعد موعد الاستحقاق</p>
+              </div>
+              <span className="avatar paid">
+                <BellRing />
+              </span>
+            </div>
+            {overdueCustomers.length > 0 ? (
+              <>
+                <div className="overdue-total">
+                  <span>إجمالي المبالغ المتأخرة</span>
+                  <strong>
+                    {money(
+                      overdueCustomers.reduce(
+                        (n, c) =>
+                          n + c.debts.reduce((sum, d) => sum + d.remaining, 0),
+                        0,
+                      ),
+                    )}{' '}
+                    <small>د.ع</small>
+                  </strong>
+                </div>
+                <div className="cards">
+                  {overdueCustomers.map(({ customer: c, debts }) => (
+                    <article className="overdue-card" key={c.id}>
+                      <div className="section-heading">
+                        <h3>{c.name}</h3>
+                        <span className="badge payment-badge">دين متأخر</span>
+                      </div>
+                      {debts.map((d) => (
+                        <div className="overdue-detail" key={d.id}>
+                          <span>
+                            الاستحقاق: <bdi>{d.dueDate}</bdi>
+                          </span>
+                          <b>{money(d.remaining)} د.ع</b>
+                        </div>
+                      ))}
+                      <button
+                        className="payment-btn save"
+                        onClick={() => {
+                          setTab('sales');
+                          setSelected(c.id);
+                          setEditor(null);
+                          setSearch('');
+                        }}
+                      >
+                        فتح الحساب والتسديد
+                        <ChevronLeft size={18} />
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </>
+            ) : (
+              empty(
+                <BellRing size={32} />,
+                'لا توجد ديون متأخرة',
+                'ستظهر هنا الديون غير المسدّدة عند تجاوز موعد استحقاقها.',
+              )
+            )}
+          </TabsContent>
           <TabsList className="bottom-tabs">
             <TabsTrigger value="customers">
               <Users />
@@ -1057,18 +1066,18 @@ export default function Home() {
               <Wallet />
               <span>البيع</span>
             </TabsTrigger>
+            <TabsTrigger value="overdue">
+              <BellRing />
+              <span>
+                التأخير{' '}
+                {overdueCustomers.length > 0 && (
+                  <b className="late-count">{overdueCustomers.length}</b>
+                )}
+              </span>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </main>
-      {notice && (
-        <output className="notice">
-          <Check size={19} />
-          <span>{notice}</span>
-          <IconButton label="إغلاق التنبيه" onClick={() => setNotice('')}>
-            <X size={17} />
-          </IconButton>
-        </output>
-      )}
       <Dialog
         open={!!form}
         onOpenChange={(v) => {
@@ -1078,29 +1087,19 @@ export default function Home() {
         <DialogContent className="edit-dialog" dir="rtl">
           <DialogTitle>
             {form?.id ? 'تعديل' : 'إضافة'}{' '}
-            {form?.kind === 'customer'
-              ? 'زبون'
-              : form?.kind === 'category'
-                ? 'تصنيف جديد'
-                : 'مادة'}
+            {form?.kind === 'customer' ? 'زبون' : 'مادة'}
           </DialogTitle>
           <DialogDescription>أدخل التفاصيل ثم اضغط حفظ.</DialogDescription>
           {form && (
             <form onSubmit={saveForm} className="edit-form">
               <label>
-                {form.kind === 'product'
-                  ? 'اسم المادة'
-                  : form.kind === 'category'
-                    ? 'اسم التصنيف'
-                    : 'الاسم'}
+                {form.kind === 'product' ? 'اسم المادة' : 'الاسم'}
                 <input
                   required
                   maxLength={100}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder={
-                    form.kind === 'category' ? 'اكتب اسم التصنيف' : 'اكتب الاسم'
-                  }
+                  placeholder="اكتب الاسم"
                 />
               </label>
               {form.kind === 'customer' && (
@@ -1155,32 +1154,6 @@ export default function Home() {
                       value={form.alert || ''}
                       onChange={(v) => setForm({ ...form, alert: v })}
                     />
-                  </div>
-                  <div className="select-field">
-                    <span id="category-label">التصنيف</span>
-                    <Select
-                      value={form.category || null}
-                      onValueChange={(v) =>
-                        setForm({ ...form, category: String(v || '') })
-                      }
-                    >
-                      <SelectTrigger
-                        aria-labelledby="category-label"
-                        style={{ width: '100%', height: 46 }}
-                      >
-                        <SelectValue>
-                          {categories.find((c) => c.id === form.category)
-                            ?.name || 'اختر التصنيف'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent dir="rtl">
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
                 </>
               )}
