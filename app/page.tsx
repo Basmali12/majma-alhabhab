@@ -149,6 +149,10 @@ export default function Home() {
     [customers, setCustomers] = useState<Customer[]>([]),
     [products, setProducts] = useState<Product[]>([]),
     [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [inventorySearch, setInventorySearch] = useState('');
+  const filteredProducts = products.filter((p) =>
+    normalize(p.name).startsWith(normalize(inventorySearch.trim())),
+  );
   const [search, setSearch] = useState(''),
     [selected, setSelected] = useState<string | null>(null),
     [form, setForm] = useState<FormState | null>(null),
@@ -192,6 +196,7 @@ export default function Home() {
   function changeTab(v: unknown) {
     setTab(String(v));
     setSearch('');
+    setInventorySearch('');
     setSelected(null);
     setEditor(null);
     setError('');
@@ -551,8 +556,25 @@ export default function Home() {
                 <Plus size={18} /> إضافة مادة
               </button>
             </div>
+            <div className="search">
+              <Search size={20} />
+              <input
+                aria-label="البحث عن مادة"
+                placeholder="ابحث عن مادة من أول حرف…"
+                value={inventorySearch}
+                onChange={(e) => setInventorySearch(e.target.value)}
+              />
+              {inventorySearch && (
+                <IconButton
+                  label="مسح بحث المخزون"
+                  onClick={() => setInventorySearch('')}
+                >
+                  <X size={16} />
+                </IconButton>
+              )}
+            </div>
             <div className="cards spaced">
-              {products.map((p) => (
+              {filteredProducts.map((p) => (
                 <article key={p.id} className="product-card">
                   <div className="product-title">
                     <span className="avatar">
@@ -627,11 +649,13 @@ export default function Home() {
                 </article>
               ))}
             </div>
-            {!products.length &&
+            {!filteredProducts.length &&
               empty(
                 <Package size={32} />,
-                'مخزونك يبدأ من هنا',
-                'أضف المواد مباشرة مع أسعارها وكمياتها.',
+                inventorySearch ? 'لا توجد مواد مطابقة' : 'مخزونك يبدأ من هنا',
+                inventorySearch
+                  ? 'جرّب كتابة بداية اسم مادة أخرى.'
+                  : 'أضف المواد مباشرة مع أسعارها وكمياتها.',
               )}
           </TabsContent>
           <TabsContent value="sales">
