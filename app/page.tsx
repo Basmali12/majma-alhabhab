@@ -40,6 +40,7 @@ import {
   total,
   balance,
   validLedger,
+  matchesName,
   normalize,
   phoneNumber,
   type Transaction,
@@ -151,7 +152,7 @@ export default function Home() {
     [transactions, setTransactions] = useState<Transaction[]>([]);
   const [inventorySearch, setInventorySearch] = useState('');
   const filteredProducts = products.filter((p) =>
-    normalize(p.name).startsWith(normalize(inventorySearch.trim())),
+    matchesName(p.name, inventorySearch),
   );
   const [search, setSearch] = useState(''),
     [selected, setSelected] = useState<string | null>(null),
@@ -172,9 +173,7 @@ export default function Home() {
   const customer = customers.find((c) => c.id === selected),
     ledger = transactions.filter((t) => t.customer === selected),
     debt = balance(ledger),
-    filtered = customers.filter((c) =>
-      normalize(c.name).startsWith(normalize(search.trim())),
-    );
+    filtered = customers.filter((c) => matchesName(c.name, search));
   const overdueCustomers = customers
     .map((c) => ({
       customer: c,
@@ -376,7 +375,7 @@ export default function Home() {
       <Search size={20} />
       <input
         aria-label="البحث عن زبون"
-        placeholder="ابحث عن زبون من أول حرف…"
+        placeholder="ابحث بأي جزء من اسم الزبون…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -560,7 +559,7 @@ export default function Home() {
               <Search size={20} />
               <input
                 aria-label="البحث عن مادة"
-                placeholder="ابحث عن مادة من أول حرف…"
+                placeholder="ابحث ببداية أي كلمة من اسم المادة…"
                 value={inventorySearch}
                 onChange={(e) => setInventorySearch(e.target.value)}
               />

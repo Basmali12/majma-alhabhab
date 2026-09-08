@@ -78,3 +78,19 @@ test('oldest debt settles before newer debt; edit and deletion recompute overdue
     0,
   );
 });
+import { matchesName } from '../lib/ledger.ts';
+test('customer search matches first, father and grandfather names', () => {
+  for (const q of ['ع', 'ح', 'ي', 'حسن', 'ياس', 'علي حسن', 'حسن يا'])
+    assert.equal(matchesName('علي حسن ياسر', q), true, q);
+  assert.equal(matchesName('علي حسن ياسر', 'سن'), false);
+  assert.equal(matchesName('علي حسن ياسر', 'ز'), false);
+  assert.equal(matchesName('علي حسن ياسر', ''), true);
+});
+test('inventory search matches any word and preserves Arabic normalization', () => {
+  assert.equal(matchesName('حنفية ماء نحاس', 'م'), true);
+  assert.equal(matchesName('حنفية ماء نحاس', 'نح'), true);
+  assert.equal(matchesName('حنفية ماء نحاس', 'ماء نح'), true);
+  assert.equal(matchesName('أنبوب   ماء', '  ان  '), true);
+  assert.equal(matchesName('عَلِي حسن ياسر', 'علي'), true);
+  assert.equal(matchesName('حنفية ماء نحاس', 'حديد'), false);
+});

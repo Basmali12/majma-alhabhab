@@ -74,3 +74,12 @@ export function overdueDebts(tx: Transaction[], now = Date.now()) {
   const today = dateKey(now);
   return unpaid.filter((d) => d.remaining > 0 && d.dueDate < today);
 }
+// Match a prefix starting at any word, while retaining full-name/phrase search.
+export function matchesName(name: string, query: string) {
+  const search = normalize(query).trim().replace(/\s+/g, ' ');
+  if (!search) return true;
+  const words = normalize(name).trim().split(/\s+/);
+  return words.some((_, index) =>
+    words.slice(index).join(' ').startsWith(search),
+  );
+}
