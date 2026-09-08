@@ -762,7 +762,7 @@ export default function Home() {
                             <div className="line-item" key={i}>
                               <span className="line-number">{i + 1}</span>
                               <label>
-                                وصف البند
+                                إضافة مادة
                                 <input
                                   required
                                   maxLength={150}
