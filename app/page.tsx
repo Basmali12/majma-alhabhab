@@ -131,7 +131,7 @@ function WhatsApp() {
   );
 }
 export default function Home() {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60000);
